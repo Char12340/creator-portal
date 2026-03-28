@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creator Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --surface: #16161a;
+    --surface2: #1e1e24;
+    --border: #2a2a35;
+    --accent: #c8f060;
+    --accent2: #7c6dfa;
+    --text: #f0efe8;
+    --muted: #6b6b80;
+    --danger: #ff6b6b;
+    --success: #6bcb77;
+    --warning: #ffd166;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; line-height: 1.6; }
+
+  #pw-screen {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; background: var(--bg); position: relative; overflow: hidden;
+  }
+  #pw-screen::before {
+    content: ''; position: absolute; width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(124,109,250,0.12) 0%, transparent 70%);
+    top: -150px; left: -150px; pointer-events: none;
+  }
+  #pw-screen::after {
+    content: ''; position: absolute; width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(200,240,96,0.07) 0%, transparent 70%);
+    bottom: -100px; right: -100px; pointer-events: none;
+  }
+  .pw-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 52px 48px; width: 100%; max-width: 420px; position: relative; z-index: 1;
+  }
+  .pw-logo { font-family: 'DM Serif Display', serif; font-size: 26px; margin-bottom: 6px; }
+  .pw-logo span { color: var(--accent); }
+  .pw-sub { font-size: 13px; color: var(--muted); margin-bottom: 32px; }
+  .pw-label { display: block; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .pw-input {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text); font-family: 'DM Sans', sans-serif;
+    font-size: 14px; padding: 12px 16px; outline: none; transition: border-color .2s; margin-bottom: 16px;
+  }
+  .pw-input:focus { border-color: var(--accent2); }
+  .pw-btn {
+    width: 100%; background: var(--accent); color: #0d0d0f; border: none;
+    border-radius: 10px; padding: 14px; font-family: 'DM Sans', sans-serif;
+    font-size: 15px; font-weight: 600; cursor: pointer; transition: all .2s;
+  }
+  .pw-btn:hover { background: #d4f570; }
+  .pw-error {
+    background: rgba(255,107,107,0.12); border: 1px solid rgba(255,107,107,0.3);
+    color: var(--danger); border-radius: 8px; padding: 10px 14px;
+    font-size: 13px; margin-bottom: 14px; display: none;
+  }
+
+  #app { display: none; flex-direction: column; min-height: 100vh; }
+
+  .topnav {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0 32px; height: 60px; display: flex; align-items: center;
+    justify-content: space-between; position: sticky; top: 0; z-index: 100;
+  }
+  .nav-brand { font-family: 'DM Serif Display', serif; font-size: 20px; }
+  .nav-brand span { color: var(--accent); }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .btn-sm {
+    background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 7px 14px; font-family: 'DM Sans', sans-serif;
+    font-size: 12px; font-weight: 500; cursor: pointer; transition: all .2s;
+  }
+  .btn-sm:hover { border-color: var(--accent2); }
+
+  .main { flex: 1; padding: 36px 32px; max-width: 1200px; width: 100%; margin: 0 auto; }
+
+  .search-bar {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 24px 28px; margin-bottom: 28px;
+    display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;
+  }
+  .search-group { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 200px; }
+  .search-label { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .search-input, .search-select {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text); font-family: 'DM Sans', sans-serif;
+    font-size: 14px; padding: 10px 14px; outline: none; transition: border-color .2s;
+  }
+  .search-input:focus, .search-select:focus { border-color: var(--accent); }
+  .search-select option { background: var(--surface2); }
+  .search-btn {
+    background: var(--accent); color: #0d0d0f; border: none; border-radius: 10px;
+    padding: 10px 24px; font-family: 'DM Sans', sans-serif; font-size: 14px;
+    font-weight: 600; cursor: pointer; transition: all .2s; white-space: nowrap;
+  }
+  .search-btn:hover { background: #d4f570; }
+
+  .loading { display: flex; align-items: center; justify-content: center; padding: 80px; color: var(--muted); font-size: 14px; gap: 12px; }
+  .spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty { text-align: center; padding: 80px; color: var(--muted); font-size: 14px; }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: .3; }
+
+  .creator-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 28px; overflow: hidden; }
+  .creator-header { padding: 24px 28px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  .creator-name-block { display: flex; align-items: center; gap: 14px; }
+  .creator-avatar { width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, var(--accent2), #a855f7); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .creator-name { font-family: 'DM Serif Display', serif; font-size: 22px; }
+  .creator-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .status-badge { padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .status-renewed { background: rgba(107,203,119,0.15); color: var(--success); }
+  .status-backout { background: rgba(255,107,107,0.15); color: var(--danger); }
+  .status-other { background: rgba(124,109,250,0.15); color: var(--accent2); }
+
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0; border-bottom: 1px solid var(--border); }
+  .info-cell { padding: 18px 28px; border-right: 1px solid var(--border); }
+  .info-cell:last-child { border-right: none; }
+  .info-cell-label { font-size: 10px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .info-cell-value { font-size: 13px; font-weight: 500; color: var(--text); word-break: break-all; }
+  .info-cell-value.accent { color: var(--accent); font-size: 16px; }
+  .info-cell-value.muted { color: #9999aa; font-size: 12px; }
+
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .stat-cell { padding: 16px 28px; border-right: 1px solid var(--border); }
+  .stat-cell:last-child { border-right: none; }
+  .stat-label { font-size: 10px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .stat-value { font-family: 'DM Serif Display', serif; font-size: 26px; }
+  .stat-value.green { color: var(--accent); }
+  .stat-value.purple { color: var(--accent2); }
+  .stat-value.red { color: var(--danger); }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 700px; }
+  th { font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 12px 20px; text-align: left; border-bottom: 1px solid var(--border); background: var(--surface2); white-space: nowrap; }
+  td { padding: 13px 20px; font-size: 13px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .empty-row td { text-align: center; color: var(--muted); padding: 40px; font-style: italic; }
+
+  .link-a { color: var(--accent2); text-decoration: none; font-size: 12px; }
+  .link-a:hover { text-decoration: underline; }
+  .platform-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .p-tiktok { background: rgba(255,255,255,0.08); color: #ccc; }
+  .p-instagram { background: rgba(200,100,255,0.15); color: #c86dfa; }
+  .p-facebook { background: rgba(55,138,221,0.15); color: #378add; }
+  .p-youtube { background: rgba(255,107,107,0.15); color: var(--danger); }
+  .p-other { background: rgba(124,109,250,0.15); color: var(--accent2); }
+  .amount-neg { color: var(--danger); font-weight: 600; }
+  .amount-pos { color: var(--success); font-weight: 600; }
+
+  .section-title { padding: 16px 28px 12px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); }
+  .result-info { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .result-info strong { color: var(--text); }
+
+  .suggestions-box { position: absolute; top: 4px; left: 0; right: 0; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; z-index: 50; overflow: hidden; }
+  .suggestion-item { padding: 10px 14px; font-size: 13px; cursor: pointer; border-bottom: 1px solid var(--border); }
+  .suggestion-item:last-child { border-bottom: none; }
+  .suggestion-item:hover { background: rgba(255,255,255,0.05); }
+
+  @media (max-width: 700px) {
+    .main { padding: 20px 16px; }
+    .topnav { padding: 0 16px; }
+    .search-bar { flex-direction: column; }
+    td, th { padding: 10px 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="pw-screen">
+  <div class="pw-card">
+    <div class="pw-logo">Creator<span>Portal</span></div>
+    <div class="pw-sub">Enter your password to access the dashboard</div>
+    <div class="pw-error" id="pw-error">Incorrect password. Try again.</div>
+    <label class="pw-label">Password</label>
+    <input type="password" class="pw-input" id="pw-input" placeholder="••••••••">
+    <button class="pw-btn" onclick="checkPassword()">Enter</button>
+  </div>
+</div>
+
+<div id="app">
+  <nav class="topnav">
+    <div class="nav-brand">Creator<span>Portal</span></div>
+    <div class="nav-right">
+      <span style="font-size:12px;color:var(--muted)" id="last-updated"></span>
+      <button class="btn-sm" onclick="refreshData()">Refresh data</button>
+      <button class="btn-sm" onclick="lockApp()">Lock</button>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="search-bar">
+      <div class="search-group" style="position:relative">
+        <span class="search-label">Creator Username</span>
+        <input type="text" class="search-input" id="search-creator" placeholder="e.g. lynnn.4u_" oninput="filterSuggestions(this.value)" autocomplete="off">
+        <div id="suggestions"></div>
+      </div>
+      <div class="search-group" style="max-width:200px">
+        <span class="search-label">Month</span>
+        <select class="search-select" id="search-month">
+          <option value="">All months</option>
+          <option>January</option><option>February</option><option>March</option>
+          <option>April</option><option>May</option><option>June</option>
+          <option>July</option><option>August</option><option>September</option>
+          <option>October</option><option>November</option><option>December</option>
+        </select>
+      </div>
+      <button class="search-btn" onclick="doSearch()">Search</button>
+    </div>
+
+    <div id="results">
+      <div class="empty">
+        <div class="empty-icon">◎</div>
+        Search for a creator above to see their dashboard
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PASSWORD = 'char2024';
+const PUBLISHED_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT13rXvgHSQ8X_98AoZsiQ2KZgU3oLkBz4lymj6iId-vM7AQdJH-Va92aaJfAQMU5GMIJ0fN0v1QSdK/pub?output=csv';
+const CREATORS_CSV  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT13rXvgHSQ8X_98AoZsiQ2KZgU3oLkBz4lymj6iId-vM7AQdJH-Va92aaJfAQMU5GMIJ0fN0v1QSdK/pub?gid=937005469&single=true&output=csv';
+
+function checkPassword() {
+  const val = document.getElementById('pw-input').value;
+  if (val === PASSWORD) {
+    document.getElementById('pw-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    loadData();
+  } else {
+    document.getElementById('pw-error').style.display = 'block';
+    document.getElementById('pw-input').value = '';
+  }
+}
+document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') checkPassword(); });
+function lockApp() {
+  document.getElementById('pw-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('pw-input').value = '';
+  document.getElementById('pw-error').style.display = 'none';
+}
+
+let publishedData = [], creatorsData = [], allUsernames = [];
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split(',').map(h => h.replace(/"/g,'').trim());
+  return lines.slice(1).map(line => {
+    const vals = []; let cur = '', inQ = false;
+    for (let c of line) {
+      if (c === '"') inQ = !inQ;
+      else if (c === ',' && !inQ) { vals.push(cur.trim()); cur = ''; }
+      else cur += c;
+    }
+    vals.push(cur.trim());
+    const obj = {};
+    headers.forEach((h,i) => obj[h] = (vals[i]||'').replace(/"/g,'').trim());
+    return obj;
+  });
+}
+
+async function fetchCSV(url) {
+  const res = await fetch(url);
+  const text = await res.text();
+  return parseCSV(text);
+}
+
+async function loadData() {
+  document.getElementById('results').innerHTML = '<div class="loading"><div class="spinner"></div> Loading from Google Sheets...</div>';
+  try {
+    [publishedData, creatorsData] = await Promise.all([fetchCSV(PUBLISHED_CSV), fetchCSV(CREATORS_CSV)]);
+    const usernameCol = Object.keys(publishedData[0]||{}).find(k => k.toLowerCase().includes('username')) || 'Username';
+    allUsernames = [...new Set(publishedData.map(r => r[usernameCol]||'').filter(Boolean))].sort();
+    document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
+    document.getElementById('results').innerHTML = '<div class="empty"><div class="empty-icon">◎</div>Search for a creator above to see their dashboard</div>';
+  } catch(e) {
+    document.getElementById('results').innerHTML = '<div class="empty"><div class="empty-icon">!</div>Could not load data. Make sure the Google Sheet is published to the web.</div>';
+  }
+}
+
+async function refreshData() { await loadData(); }
+
+function filterSuggestions(val) {
+  const box = document.getElementById('suggestions');
+  if (!val || val.length < 1) { box.innerHTML = ''; return; }
+  const matches = allUsernames.filter(u => u.toLowerCase().includes(val.toLowerCase())).slice(0,8);
+  if (!matches.length) { box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="suggestions-box">${matches.map(m =>
+    `<div class="suggestion-item" onclick="selectSuggestion('${m.replace(/'/g,"\\'")}'">${m}</div>`
+  ).join('')}</div>`;
+}
+
+function selectSuggestion(name) {
+  document.getElementById('search-creator').value = name;
+  document.getElementById('suggestions').innerHTML = '';
+  doSearch();
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#search-creator') && !e.target.closest('#suggestions'))
+    document.getElementById('suggestions').innerHTML = '';
+});
+
+function getDateCol(row) {
+  return Object.keys(row).find(k => k.match(/^\d{4}-\d{2}-\d{2}$/)) ||
+         Object.keys(row).find(k => k.toLowerCase() === 'date') || Object.keys(row)[0];
+}
+
+function monthMatch(row, month) {
+  if (!month) return true;
+  const mo = month.toLowerCase();
+  const dateCol = getDateCol(row);
+  const dateVal = (row[dateCol]||'').toLowerCase();
+  const m1 = (row['Month 1']||'').toLowerCase();
+  const m2 = (row['Month 2']||'').toLowerCase();
+  if (m1.includes(mo) || m2.includes(mo)) return true;
+  const monthNums = {january:'01',february:'02',march:'03',april:'04',may:'05',june:'06',july:'07',august:'08',september:'09',october:'10',november:'11',december:'12'};
+  return dateVal.includes('-' + monthNums[mo] + '-') || dateVal.includes('/' + parseInt(monthNums[mo]) + '/');
+}
+
+function doSearch() {
+  const username = document.getElementById('search-creator').value.trim().toLowerCase();
+  const month = document.getElementById('search-month').value;
+  document.getElementById('suggestions').innerHTML = '';
+
+  if (!username && !month) {
+    document.getElementById('results').innerHTML = '<div class="empty"><div class="empty-icon">◎</div>Enter a creator name or select a month</div>';
+    return;
+  }
+
+  const usernameCol = Object.keys(publishedData[0]||{}).find(k => k.toLowerCase().includes('username')) || 'Username';
+  let rows = publishedData.filter(r => {
+    const uMatch = !username || (r[usernameCol]||'').toLowerCase().includes(username);
+    const mMatch = monthMatch(r, month);
+    return uMatch && mMatch;
+  });
+
+  if (!rows.length) {
+    document.getElementById('results').innerHTML = '<div class="empty"><div class="empty-icon">◎</div>No results found. Try a different name or month.</div>';
+    return;
+  }
+
+  const grouped = {};
+  rows.forEach(r => {
+    const u = r[usernameCol] || 'Unknown';
+    if (!grouped[u]) grouped[u] = [];
+    grouped[u].push(r);
+  });
+
+  const totalCreators = Object.keys(grouped).length;
+  document.getElementById('results').innerHTML =
+    `<div class="result-info">Showing <strong>${totalCreators} creator${totalCreators>1?'s':''}</strong> · <strong>${rows.length} videos</strong></div>` +
+    Object.entries(grouped).map(([u, vids]) => renderCard(u, vids)).join('');
+}
+
+function renderCard(username, videos) {
+  const creatorNameCol = Object.keys(creatorsData[0]||{}).find(k => k.toLowerCase().includes('creator') && k.toLowerCase().includes('name')) || 'Creator Name';
+  const info = creatorsData.find(c => (c[creatorNameCol]||'').toLowerCase() === username.toLowerCase()) || {};
+
+  const status = info['Status'] || '';
+  const statusClass = status.toLowerCase().includes('renew') ? 'status-renewed' : status.toLowerCase().includes('back') ? 'status-backout' : 'status-other';
+  const initials = username.slice(0,2).toUpperCase();
+
+  const email = info['Email'] || '—';
+  const paypalName = info['Name ng Paypal'] || '—';
+  const paymentInfo = info['Payment Info'] || '—';
+  const maxVideos = info['No. of Videos'] || '—';
+  const contractNo = info['Contract No.'] || '—';
+  const commMethod = info['Comm Method'] || '—';
+  const platform = info['Platform'] || '—';
+  const country = info['Country'] || '—';
+  const contactInfo = info['Contact Info'] || '—';
+
+  const totalRate = videos.reduce((s,v) => s + (parseFloat(v['Rate']||0)||0), 0);
+  const totalDed = videos.reduce((s,v) => s + (parseFloat(v['Deduction']||0)||0), 0);
+  const net = totalRate - totalDed;
+
+  const dateCol = getDateCol(videos[0]||{});
+
+  const tableRows = videos.map(v => {
+    const plt = (v['Platform']||'').toLowerCase();
+    const bc = plt.includes('tiktok') ? 'p-tiktok' : plt.includes('ig')||plt.includes('instagram') ? 'p-instagram' : plt.includes('fb')||plt.includes('facebook') ? 'p-facebook' : plt.includes('youtube') ? 'p-youtube' : 'p-other';
+    const link = v['Link']||'';
+    const ded = parseFloat(v['Deduction']||0)||0;
+    const rate = parseFloat(v['Rate']||0)||0;
+    const date = v[dateCol]||'—';
+    const adCode = v['Ad Code']||'—';
+    const remarks = v['Remarks']||'—';
+    const vstatus = v['Status']||'—';
+    const vtype = v['Video Type']||v['Type']||'—';
+    return `<tr>
+      <td>${date}</td>
+      <td><span class="platform-badge ${bc}">${v['Platform']||'—'}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${vtype}</td>
+      <td>${link ? `<a class="link-a" href="${link}" target="_blank">View ↗</a>` : '—'}</td>
+      <td class="${rate>0?'amount-pos':''}">${rate>0?'$'+rate.toFixed(2):'—'}</td>
+      <td class="${ded>0?'amount-neg':''}">${ded>0?'-$'+ded.toFixed(2):'—'}</td>
+      <td style="font-size:11px;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${adCode}</td>
+      <td style="font-size:12px;color:var(--muted)">${remarks!=='—'?remarks:'—'}</td>
+      <td style="font-size:12px">${vstatus}</td>
+    </tr>`;
+  }).join('');
+
+  return `<div class="creator-card">
+    <div class="creator-header">
+      <div class="creator-name-block">
+        <div class="creator-avatar">${initials}</div>
+        <div>
+          <div class="creator-name">@${username}</div>
+          <div class="creator-meta">${platform} · ${country}</div>
+        </div>
+      </div>
+      ${status ? `<span class="status-badge ${statusClass}">${status}</span>` : ''}
+    </div>
+    <div class="info-grid">
+      <div class="info-cell"><div class="info-cell-label">Email</div><div class="info-cell-value muted">${email}</div></div>
+      <div class="info-cell"><div class="info-cell-label">Contact Info</div><div class="info-cell-value muted">${contactInfo}</div></div>
+      <div class="info-cell"><div class="info-cell-label">PayPal Name</div><div class="info-cell-value muted">${paypalName}</div></div>
+      <div class="info-cell"><div class="info-cell-label">Payment Info</div><div class="info-cell-value muted">${paymentInfo}</div></div>
+      <div class="info-cell"><div class="info-cell-label">Max Videos/Mo</div><div class="info-cell-value accent">${maxVideos}</div></div>
+      <div class="info-cell"><div class="info-cell-label">Contract No.</div><div class="info-cell-value muted">${contractNo}</div></div>
+      <div class="info-cell"><div class="info-cell-label">Comm Method</div><div class="info-cell-value muted">${commMethod}</div></div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-cell"><div class="stat-label">Videos found</div><div class="stat-value purple">${videos.length}</div></div>
+      <div class="stat-cell"><div class="stat-label">Total Rate</div><div class="stat-value green">$${totalRate.toFixed(2)}</div></div>
+      <div class="stat-cell"><div class="stat-label">Deductions</div><div class="stat-value red">$${totalDed.toFixed(2)}</div></div>
+      <div class="stat-cell"><div class="stat-label">Net Pay</div><div class="stat-value ${net>=0?'green':'red'}">$${net.toFixed(2)}</div></div>
+    </div>
+    <div class="section-title">Video Submissions</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date</th><th>Platform</th><th>Type</th><th>Link</th><th>Rate</th><th>Deduction</th><th>Ad Code</th><th>Remarks</th><th>Status</th></tr></thead>
+        <tbody>${tableRows||'<tr class="empty-row"><td colspan="9">No videos found</td></tr>'}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+</script>
+</body>
+</html>
